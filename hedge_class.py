@@ -62,7 +62,7 @@ class hedge_pricer():
             z=scipy.dot(z,self.corr)
 
             for i in range(self.n_assets):
-                lss[:,i]+=self.r_drifts[i]-sigma[i]*sigma[i]*self.dt/2+sigma[0]*z[:,0]*self.dt**.5
+                lss[:,i]+=self.r_drifts[i]*self.dt-sigma[i]*sigma[i]*self.dt/2+sigma[0]*z[:,0]*self.dt**.5
             spots=self.spot*scipy.exp(lss)
             path.append([*spots])
         self.path=np.array(path)
