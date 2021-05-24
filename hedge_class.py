@@ -5,12 +5,11 @@ Created on Sat May 22 19:54:42 2021
 @author: Raghav Gumber
 """
 
-# -*- coding: utf-8 -*-
-
 import scipy
 import numpy as np
 import pandas as pd
 import math
+import matplotlib.ticker as mtick
 
 class hedge_pricer():
     '''
@@ -113,4 +112,18 @@ class hedge_pricer():
             option+=sum(option_payoff_disc)
         return N*option/len(self.path.T[index])
             
-            
+    def plot_IRRs(self,IRRs,ax):
+        dist=pd.Series(IRRs)
+        dist.plot.kde(ax=ax, legend=False, title='Distribution of unhedged IRRs over the 1000 scenarios',ind=[0,1])
+        dist.plot.hist(density=True, ax=ax)
+        ax.set_ylabel('Probability')
+        ax.grid(axis='y')
+        ax.set_xlim([math.floor(min(IRRs)),math.ceil(max(IRRs))])
+        v=0
+        for percentile in [5,50,95]:
+            v+=.01
+            pct=np.percentile(IRRs, percentile)
+            ax.axvline(x=pct, ymin=0, ymax=1,color='r',linestyle='--')
+            ax.xaxis.set_major_formatter(mtick.PercentFormatter())
+
+            ax.text(pct+.25, max(ax.get_yticks())/2+v, '{0} IRR is {1}th percentile'.format("{:.2%}".format(pct/100),percentile), fontsize=12)
