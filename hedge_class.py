@@ -44,6 +44,8 @@ class hedge_pricer():
         self.corr=corr
         self.seed=seed
         self.path=np.empty(0)
+        
+        self.time_steps=math.ceil(total_time/dt)
         #self.CF_paths=np.empty(0)
     def ret_paths(self):
         '''
@@ -55,13 +57,13 @@ class hedge_pricer():
         lss=scipy.zeros((self.n_paths,self.n_assets))
         spots=self.spot*scipy.exp(lss)
         path=[[*spots]]
-        for tStep in range(self.total_time):
+        for tStep in range(self.time_steps):
             sigma=np.array([[self.sigma_vec[i] for j in range(self.n_paths)] for i in range(self.n_assets)])
             z=scipy.random.normal(0,1,(self.n_paths,self.n_assets))
             z=scipy.dot(z,self.corr)
 
             for i in range(self.n_assets):
-                lss[:,i]+=self.r_drifts[i]-sigma[i]*sigma[i]*self.dt/2+sigma[0]*z[:,0]*self.dt
+                lss[:,i]+=self.r_drifts[i]-sigma[i]*sigma[i]*self.dt/2+sigma[0]*z[:,0]*self.dt**.5
             spots=self.spot*scipy.exp(lss)
             path.append([*spots])
         self.path=np.array(path)
@@ -78,7 +80,7 @@ class hedge_pricer():
         if len(self.path)==0:
             raise ValueError("run paths first")
         else:
-            CF_paths=np.stack((self.path[i]*CF[i] for i in sorted(CF.keys())))
+            CF_paths=np.stack((self.path[math.ceil(i/self.dt)]*CF[i] for i in sorted(CF.keys())))
             
             return CF_paths
     def solve_IRR(self,CF_scen):
@@ -106,7 +108,7 @@ class hedge_pricer():
         option=0
         for i in range(len(self.path.T[index])):
             scen=self.path.T[index][i]
-            option_payoff=[0]*(T)+[max(K-scen[T],0)]
+            option_payoff=[0]*(T)+[max(K-scen[math.ceil(T/self.dt)],0)]
             option_payoff_disc=[math.exp(-r_fwd*i)*option_payoff[i] for i in range(T+1)]
             option+=sum(option_payoff_disc)
         return N*option/len(self.path.T[index])
