@@ -113,6 +113,14 @@ class hedge_pricer():
         return N*option/len(self.path.T[index])
             
     def plot_IRRs(self,IRRs,ax):
+        '''
+        Args:
+            IRRs: list float -> IRRs ro plot density of
+            ax: axis object to plot on
+        Returns:
+            None. Just plots
+            
+        '''
         dist=pd.Series(IRRs)
         dist.plot.kde(ax=ax, legend=False, title='Distribution of unhedged IRRs over the 1000 scenarios',ind=[0,1])
         dist.plot.hist(density=True, ax=ax)
